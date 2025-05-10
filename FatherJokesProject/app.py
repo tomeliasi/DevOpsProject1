@@ -1,19 +1,22 @@
+import json
+import random
 from flask import Flask, request, jsonify, render_template_string
 import redis
-import google.generativeai as genai
-import random
-from google.generativeai.types import GenerationConfig
 
 app = Flask(__name__)
 
 # Redis connection (if running with Docker, the service name is redis)
 r = redis.Redis(host='redis', port=6379, decode_responses=True)
 
-# Configure API key for Gemini API
-genai.configure(api_key="AIzaSyAx83Q5ZdKwnOlosMPuAiJUcWT04UBQbJU")
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Load jokes from the JSON file
+with open('jokes.json', 'r') as f:
+    jokes = json.load(f)
 
-# Update the HTML template to remove private likes and dislikes for each joke
+# Track previously shown jokes in Redis
+if not r.exists('shown_jokes'):
+    r.set('shown_jokes', json.dumps([]))
+
+# HTML template
 HTML_TEMPLATE = """
 <html>
   <head>
@@ -91,19 +94,24 @@ HTML_TEMPLATE = """
 </html>
 """
 
-# Update the get_joke function so that it only displays the total_likes and total_dislikes
 @app.route('/')
 def get_joke():
-    # Add randomness to the prompt
-    prompt = f"Tell me a random dad joke #{random.randint(1, 99999)}"
+    # Load previously shown jokes from Redis
+    shown_jokes = json.loads(r.get('shown_jokes'))
+
+    # Get a random joke that has not been shown yet
+    remaining_jokes = [joke for joke in jokes if joke not in shown_jokes]
     
-    response = model.generate_content(
-        prompt,
-        generation_config=GenerationConfig(
-            temperature=1.0  # higher randomness
-        )
-    )
-    joke = response.text.strip()
+    if not remaining_jokes:
+        # Reset the shown jokes if all jokes have been shown
+        shown_jokes = []
+        remaining_jokes = jokes
+
+    joke = random.choice(remaining_jokes)
+    shown_jokes.append(joke)
+    
+    # Update the shown jokes in Redis
+    r.set('shown_jokes', json.dumps(shown_jokes))
 
     total_likes = r.get("total_likes") or 0
     total_dislikes = r.get("total_dislikes") or 0
@@ -115,6 +123,7 @@ def get_joke():
         total_dislikes=total_dislikes
     )
 
+@app.route('/rate', methods=['POST'])
 @app.route('/rate', methods=['POST'])
 def rate_joke():
     joke = request.form.get('joke')
@@ -129,9 +138,51 @@ def rate_joke():
         r.hset(key, "dislikes", int(r.hget(key, "dislikes") or 0) + 1)
         r.incr("total_dislikes")
 
-    # After rating, redirect back to the home page with a new joke
-    return f"Thank you for your feedback! <a href='/'>Get a new joke</a>"
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
-
+    # Render a styled thank you page
+    return render_template_string("""
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+          }
+          .message-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+          }
+          h2 {
+            color: #007BFF;
+            margin-bottom: 20px;
+          }
+          a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+          }
+          a:hover {
+            background-color: #0056b3;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="message-box">
+          <h2>Thank you for your feedback!</h2>
+          <a href="/">Get a new joke</a>
+        </div>
+      </body>
+    </html>
+    """)
