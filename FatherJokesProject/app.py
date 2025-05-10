@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, render_template_string
 import redis
 import google.generativeai as genai
+import random
+from google.generativeai.types import GenerationConfig
 
 app = Flask(__name__)
 
@@ -8,10 +10,10 @@ app = Flask(__name__)
 r = redis.Redis(host='redis', port=6379, decode_responses=True)
 
 # Configure API key for Gemini API
-genai.configure(api_key="AIzaSyCkwuMWjlfH3TQfAPk22TMvologsem1EK8")
+genai.configure(api_key="AIzaSyAx83Q5ZdKwnOlosMPuAiJUcWT04UBQbJU")
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-# עדכון תבנית ה-HTML ללא likes ו-dislikes פרטיים לכל בדיחה
+# Update the HTML template to remove private likes and dislikes for each joke
 HTML_TEMPLATE = """
 <html>
   <head>
@@ -89,25 +91,29 @@ HTML_TEMPLATE = """
 </html>
 """
 
-# עדכון הפונקציה get_joke כך שתציין רק את ה-total_likes ו-total_dislikes
+# Update the get_joke function so that it only displays the total_likes and total_dislikes
 @app.route('/')
 def get_joke():
-    # Get a random joke from Gemini API
-    response = model.generate_content("Send me a random dad joke.")
+    # Add randomness to the prompt
+    prompt = f"Tell me a random dad joke #{random.randint(1, 99999)}"
+    
+    response = model.generate_content(
+        prompt,
+        generation_config=GenerationConfig(
+            temperature=1.0  # higher randomness
+        )
+    )
     joke = response.text.strip()
 
-    # Retrieve global like/dislike counts
     total_likes = r.get("total_likes") or 0
     total_dislikes = r.get("total_dislikes") or 0
 
-    # Return the joke page with likes and dislikes displayed
     return render_template_string(
         HTML_TEMPLATE,
         joke=joke,
         total_likes=total_likes,
         total_dislikes=total_dislikes
     )
-
 
 @app.route('/rate', methods=['POST'])
 def rate_joke():
