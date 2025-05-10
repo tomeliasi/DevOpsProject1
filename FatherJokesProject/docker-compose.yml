@@ -12,4 +12,6 @@ services:
   redis:
     image: redis:latest
     restart: always
+    volumes:
+      - ./data/redis:/data  # כאן אנחנו מגדירים את ה-volume לשמירה במיקום בתוך ה-repository שלך
 
