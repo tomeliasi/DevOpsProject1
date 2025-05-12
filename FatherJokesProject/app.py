@@ -110,7 +110,7 @@ def get_joke():
     joke = random.choice(remaining_jokes)
     shown_jokes.append(joke)
     
-    # Update the shown jokes in Redis
+    # Update shown jokes in Redis
     r.set('shown_jokes', json.dumps(shown_jokes))
 
     total_likes = r.get("total_likes") or 0
@@ -138,7 +138,7 @@ def rate_joke():
         r.hset(key, "dislikes", int(r.hget(key, "dislikes") or 0) + 1)
         r.incr("total_dislikes")
 
-    # Render a styled thank you page
+    # Thank you page styled
     return render_template_string("""
     <html>
       <head>
