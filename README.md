@@ -16,17 +16,13 @@ Steps:
 
 4. **Navigate to the Project Directory**
    - Use the `cd` command to go to the project folder, for example:
-     cd "/mnt/c/Users/<your-username>/path/to/project"
+     cd "/mnt/c/Users/<your-username>/path/to/project/FatherJokesProject"
 
-5. **Verify docker-compose.yml Exists**
-   - Make sure the file `docker-compose.yml` is in the root of the project directory.
-
-6. **Run the Project Using Docker Compose**
+5. **Run the Project Using Docker Compose**
    - In the same directory, run the following command:
      docker-compose up --build
 
-7. **Access the Application**
+6. **Access the Application**
    - After the build finishes, the app will be running in a Docker container.
    - Open your browser and go to:
-     http://localhost:<port>
-   - Replace `<port>` with the correct port defined in the docker-compose.yml file.
+     http://localhost:5000
