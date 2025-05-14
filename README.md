@@ -26,3 +26,7 @@ Steps:
    - After the build finishes, the app will be running in a Docker container.
    - Open your browser and go to:
      http://localhost:5000
+
+**Architecture Diagram**
+
+![Architecture Diagram](https://i.imgur.com/cfnGKHv.png)
