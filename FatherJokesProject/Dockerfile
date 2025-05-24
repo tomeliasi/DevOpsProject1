@@ -2,6 +2,7 @@ FROM python:3.12
 
 WORKDIR /app
 
+# you copy more files than you need to because you repo not organized
 COPY . .
 
 RUN pip install --no-cache-dir -r requirements.txt
