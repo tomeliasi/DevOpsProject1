@@ -4,13 +4,13 @@ Steps:
 
 1. **Install Docker Desktop**
    - Make sure you have Docker Desktop installed on your system.
-   - Ensure that WSL2 is installed and set as the default backend.
+   - Ensure that WSL2 is installed and set as the default backend. - Not realy needed docker containers can run everywhere docker installed
 
 2. **Clone the Project from GitHub**
    - Clone the repository to your local machine using:
      git clone <repository-url>
 
-3. **Open WSL**
+3. **Open WSL** - Not realy needed, connected to the comment in step 1
    - Launch Command Prompt (CMD) and type:
      wsl
 

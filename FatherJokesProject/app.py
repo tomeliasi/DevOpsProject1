@@ -1,22 +1,22 @@
 import json
 import random
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string # jsonify is not used, so it can be removed
 import redis
 
 app = Flask(__name__)
 
-# Redis connection (if running with Docker, the service name is redis)
-r = redis.Redis(host='redis', port=6379, decode_responses=True)
+# Redis connection (if running with Docker, the service name is redis) - Commetns on the code should exist only if they add value (In this case, they do not sincde they are self-explanatory)
+r = redis.Redis(host='redis', port=6379, decode_responses=True) # Use meaningful names for variables, r can be redis_client
 
-# Load jokes from the JSON file
+# Load jokes from the JSON file - Commetns on the code should exist only if they add value  # (In this case, they do not since they are self-explanatory)
 with open('jokes.json', 'r') as f:
     jokes = json.load(f)
 
-# Track previously shown jokes in Redis
+# Track previously shown jokes in Redis  - Commetns on the code should exist only if they add value  # (In this case, they do not since they are self-explanatory)
 if not r.exists('shown_jokes'):
     r.set('shown_jokes', json.dumps([]))
 
-# HTML template
+# HTML template - Next time, consider using a separate HTML file for better organization
 HTML_TEMPLATE = """
 <html>
   <head>
@@ -96,21 +96,21 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def get_joke():
-    # Load previously shown jokes from Redis
+    # Load previously shown jokes from Redis  - Commetns on the code should exist only if they add value  # (In this case, they do not since they are self-explanatory)
     shown_jokes = json.loads(r.get('shown_jokes'))
 
-    # Get a random joke that has not been shown yet
-    remaining_jokes = [joke for joke in jokes if joke not in shown_jokes]
+    # Get a random joke that has not been shown yet  - Commetns on the code should exist only if they add value  # (In this case, they do not since they are self-explanatory)
+    remaining_jokes = [joke for joke in jokes if joke not  in shown_jokes]
     
     if not remaining_jokes:
-        # Reset the shown jokes if all jokes have been shown
+        # Reset the shown jokes if all jokes have been shown  - Commetns on the code should exist only if they add value  # (In this case, they do not since they are self-explanatory)
         shown_jokes = []
         remaining_jokes = jokes
 
     joke = random.choice(remaining_jokes)
     shown_jokes.append(joke)
     
-    # Update shown jokes in Redis
+    # Update shown jokes in Redis  - Commetns on the code should exist only if they add value  # (In this case, they do not since they are self-explanatory)
     r.set('shown_jokes', json.dumps(shown_jokes))
 
     total_likes = r.get("total_likes") or 0
@@ -123,7 +123,7 @@ def get_joke():
         total_dislikes=total_dislikes
     )
 
-@app.route('/rate', methods=['POST'])
+@app.route('/rate', methods=['POST']) # why twise? can be removed
 @app.route('/rate', methods=['POST'])
 def rate_joke():
     joke = request.form.get('joke')
@@ -138,7 +138,7 @@ def rate_joke():
         r.hset(key, "dislikes", int(r.hget(key, "dislikes") or 0) + 1)
         r.incr("total_dislikes")
 
-    # Thank you page styled
+    # Thank you page styled - Commetns on the code should exist only if they add value, also consider using a separate HTML file for better organization
     return render_template_string("""
     <html>
       <head>
